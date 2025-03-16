@@ -10,7 +10,7 @@ import google.generativeai as genai
 import os
 
 # Set API Key
-GOOGLE_API_KEY = "AIzaSyACT4ZQdl9cBC4LMAAHNy79SevZ34fx6jQ"
+GOOGLE_API_KEY = ""
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Define Resume Parsing Prompt
