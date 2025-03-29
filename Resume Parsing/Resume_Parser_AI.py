@@ -10,28 +10,39 @@ import google.generativeai as genai
 import os
 
 # Set API Key
-GOOGLE_API_KEY = ""
+GOOGLE_API_KEY = "AIzaSyACT4ZQdl9cBC4LMAAHNy79SevZ34fx6jQ"
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Define Resume Parsing Prompt
 def parse_resume(text):
     model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = f"""
-    Extract the following details from the resume text:
-    - Name
-    - Contact Information (Email, Phone)
-    - Summary
-    - Education (Degree, University, Year)
-    - Work Experience (Company, Role, Years)
-    - Skills
-    - Certifications
-    - Projects
+Extract the following details separately from the resume text:
+1. Name
+2. Contact Information:
+   - Email
+   - Phone
+3. Summary
+4. Education:
+   - Degree
+   - University
+   - Year
+5. Work Experience:
+   - Company
+   - Role
+   - Years
+6. Skills
+7. Certifications
+8. Projects
 
-    Provide the output in structured JSON format.
+Additionally, generate a consolidated paragraph summarizing the candidate's background, skills, and experience. This paragraph should be used for similarity measurement between the resume and job description.
 
-    Resume Text: 
-    {text}
-    """
+Provide the output in structured JSON format.
+
+Resume Text:
+{text}
+"""
+
     response = model.generate_content(prompt)
     return response.text
 
