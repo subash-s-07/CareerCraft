@@ -1,0 +1,56 @@
+# requirements_optimized.txt
+# Core web framework
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# AI and ML libraries
+google-generativeai==0.3.2
+sentence-transformers==2.2.2
+xgboost==1.7.6
+
+# Vector database
+qdrant-client==1.6.9
+
+# Firebase
+firebase-admin==6.2.0
+
+# Document processing
+PyPDF2==3.0.1
+python-docx==0.8.11
+docx2txt==0.8
+
+# Web scraping (optimized)
+aiohttp==3.8.6
+beautifulsoup4==4.12.2
+requests==2.31.0
+
+# Data processing
+pandas==2.1.1
+numpy==1.24.3
+
+# Async support
+asyncio-throttle==1.0.2
+
+# Text processing
+nltk==3.8.1
+spacy==3.7.2
+
+# Utilities
+python-dotenv==1.0.0
+click==8.1.7
+
+# Development tools (optional)
+# pytest==7.4.2
+# black==23.9.1
+# flake8==6.1.0
+
+# Performance monitoring (optional)
+# memory-profiler==0.61.0
+# psutil==5.9.6
+
+# Note: Removed heavy dependencies:
+# - selenium (replaced with aiohttp for lightweight scraping)
+# - torch (sentence-transformers will install minimal version)
+# - tensorflow (not needed for this application)
+# - cv2/opencv (not used)
+# - matplotlib/seaborn (not needed for web app)

@@ -1,0 +1,54 @@
+{
+  "name": "EVELYNN ADAMS",
+  "contact_information": {
+    "email": null,
+    "phone": null
+  },
+  "summary": "I am a recent graduate who is interested and fascinated by Machine learning. I want to join this industry and be a part of it, learn and contribute towards both the growth of the company and me as an individual in terms of skills.",
+  "education": [
+    {
+      "degree": "B.Sc (Computer Science)",
+      "university": "KTM College, Nashik",
+      "year": 2019
+    },
+    {
+      "degree": "MCA (Computers)",
+      "university": "SPP University, Pune",
+      "year": 2021
+    }
+  ],
+  "work_experience": [
+    {
+      "company": "E-Novate Labs",
+      "role": "Intern Trainee",
+      "years": "Aug 2020 to Dec 2020"
+    }
+  ],
+  "total_work_experience_in_years": 0.5,
+  "skills": [
+    "Machine Learning",
+    "Deep Learning",
+    "Neural Networks",
+    "ML Algorithms",
+    "Python",
+    "NumPy",
+    "Scikit Learn",
+    "Matplotlib",
+    "Keras",
+    "Pandas",
+    "TensorFlow",
+    "Seaborn",
+    "Java",
+    "ReactJS",
+    "NodeJS"
+  ],
+  "tools": [],
+  "certifications": [
+    "Certified Entry Level Python Programmer",
+    "Certified Associate Level in Python Programming"
+  ],
+  "projects": [
+    "Deep Learning assisted Image recognition"
+  ],
+  "summary_paragraph": "Evelyyn Adams is a recent MCA (Computers) graduate from SPP University, Pune, and holds a BSc (Computer Science) from KTM College, Nashik.  She has experience as an Intern Trainee at E-Novate Labs, where she worked with neural networks and developed a supervised model for image recognition.  Her skills include Machine Learning, Deep Learning, Python, Java, ReactJS, and various data science libraries.  She also holds certifications in Python programming and has completed a project on Deep Learning assisted Image recognition."
+}

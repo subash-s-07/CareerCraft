@@ -1,31 +1,32 @@
+# job_scraper.py
 import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
 import pandas as pd
+import urllib.parse
 
-# Base URL for job listings
-LIST_URL = 'https://www.linkedin.com/jobs/search?keywords=Machine%20Learning&location=India&geoId=102713980&position=1&pageNum=0'
+from Extract_Skill_JD import insert_skills
 
-# Headers to mimic a real browser request
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
+    "User-Agent": "Mozilla/5.0"
 }
 
 async def fetch(session, url):
-    """Fetch a URL asynchronously"""
     async with session.get(url, headers=HEADERS) as response:
         return await response.text()
 
-async def get_job_ids():
-    """Fetch job IDs from the LinkedIn job search page."""
+async def get_job_ids(job_role):
+    encoded_role = urllib.parse.quote_plus(job_role)
+    list_url = f'https://www.linkedin.com/jobs/search?keywords={encoded_role}&location=India&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0'
+
     async with aiohttp.ClientSession() as session:
-        page_data = await fetch(session, LIST_URL)
+        page_data = await fetch(session, list_url)
         soup = BeautifulSoup(page_data, "html.parser")
         job_list = soup.find('ul', class_='jobs-search__results-list')
 
         if not job_list:
             return []
-        
+
         jobs = job_list.find_all('li')
         job_ids = []
 
@@ -34,11 +35,10 @@ async def get_job_ids():
             if job_div:
                 job_id = job_div["data-entity-urn"].split(":")[-1]
                 job_ids.append(job_id)
-        
-        return job_ids  # Limit to first 5 jobs for efficiency
+        print(job_ids)
+        return job_ids
 
 async def fetch_job_details(job_id, session):
-    """Fetch job details for a given job ID."""
     job_url = f'https://www.linkedin.com/jobs/view/{job_id}/'
     page_data = await fetch(session, job_url)
     soup = BeautifulSoup(page_data, "html.parser")
@@ -47,7 +47,7 @@ async def fetch_job_details(job_id, session):
         job_des = soup.find('div', class_='show-more-less-html__markup').text.strip()
         role = soup.find('h1', class_='top-card-layout__title').text.strip()
         criteria = soup.find_all('span', class_='description__job-criteria-text')
-        
+
         return {
             'Job_ID': job_id,
             'Role': role,
@@ -59,18 +59,21 @@ async def fetch_job_details(job_id, session):
             'Link': job_url
         }
     except:
-        return None  # Skip if parsing fails
+        return None
 
-async def main():
-    job_ids = await get_job_ids()
-    
+async def main(job_role):
+    job_ids = await get_job_ids(job_role)
+
+    if not job_ids:
+        print(f"No jobs found for '{job_role}'")
+        return
+
     async with aiohttp.ClientSession() as session:
         tasks = [fetch_job_details(job_id, session) for job_id in job_ids]
         job_data = await asyncio.gather(*tasks)
-    
-    job_data = [job for job in job_data if job]  # Remove None values
-    df = pd.DataFrame(job_data)
-    df.to_csv('jobs.csv')
 
-# Run the async loop
-asyncio.run(main())
+    job_data = [job for job in job_data if job]
+    df = pd.DataFrame(job_data)
+    df = insert_skills(df)
+    print('HI    ',df)
+    return df

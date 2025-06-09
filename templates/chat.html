@@ -1,0 +1,327 @@
+<!-- templates/chat_fixed.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ chat.name }} - Resume Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <style>
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            background: white;
+            margin-bottom: 20px;
+        }
+        .chat-title-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-title {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+        .chat-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .chat-actions-header {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .analysis-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+        }
+        .analysis-btn:hover {
+            background: linear-gradient(135deg, #218838, #1ba385);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
+        }
+        .refresh-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+        .refresh-btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>Resume Analyzer</h1>
+                <a href="{{ url_for('new_chat') }}" class="new-chat-btn">
+                    <i class="fas fa-plus"></i> New Chat
+                </a>
+            </div>
+            <div class="chat-list">
+                {% for id, chat_info in chats.items() %}
+                <div class="chat-item {% if id == chat_id %}active{% endif %}">
+                    <a href="{{ url_for('chat', chat_id=id) }}" class="chat-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="chat-name">{{ chat_info.name }}</span>
+                    </a>
+                    <div class="chat-actions">
+                        <a href="{{ url_for('resume_analysis', chat_id=id) }}" class="analysis-btn" title="View Analysis" style="font-size: 10px; padding: 3px 6px;">
+                            <i class="fas fa-chart-line"></i>
+                        </a>
+                        <button class="rename-btn" onclick="renameChat('{{ id }}')" title="Rename">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <form action="{{ url_for('delete_chat', chat_id=id) }}" method="post" class="delete-form" style="margin: 0;">
+                            <button type="submit" class="delete-btn" title="Delete" onclick="return confirm('Delete this chat?')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="chat-container">
+                <!-- ENHANCED CHAT HEADER WITH ANALYSIS BUTTON -->
+                <div class="chat-header">
+                    <div class="chat-title-section">
+                        <h2 class="chat-title">{{ chat.name }}</h2>
+                        <div class="chat-subtitle">
+                            <i class="fas fa-file"></i> {{ chat.filename }}
+                            {% if chat.analysis and chat.analysis.last_analyzed %}
+                                | Last analyzed: {{ chat.analysis.last_analyzed }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="chat-actions-header">
+                        <button class="refresh-btn" onclick="refreshAnalysis()" title="Refresh Analysis">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <a href="{{ url_for('resume_analysis', chat_id=chat_id) }}" class="analysis-btn" title="View Detailed ML Analysis">
+                            <i class="fas fa-chart-line"></i> View ML Analysis
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    {% if chat.messages and chat.messages|length > 0 %}
+                        {% for message in chat.messages %}
+                            <div class="message-container {{ message.role }}">
+                                <div class="message {{ message.role }}">
+                                    <div class="message-avatar">
+                                        {% if message.role == 'user' %}
+                                            <i class="fas fa-user"></i>
+                                        {% else %}
+                                            <i class="fas fa-robot"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="message-content">
+                                        <div class="message-text">{{ message.content|safe }}</div>
+                                        <div class="message-time">{{ message.timestamp }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="welcome-message">
+                            <h3><i class="fas fa-robot"></i> Resume Analysis Assistant</h3>
+                            <p>Ask questions about the resume you uploaded, or try these suggestions:</p>
+                            <div class="example-questions">
+                                <button class="example-btn" onclick="askExample(this)">
+                                    <i class="fas fa-user-tie"></i> What are the candidate's key skills and strengths?
+                                </button>
+                                <button class="example-btn" onclick="askExample(this)">
+                                    <i class="fas fa-briefcase"></i> Summarize their work experience and career progression
+                                </button>
+                                <button class="example-btn" onclick="askExample(this)">
+                                    <i class="fas fa-graduation-cap"></i> What is their educational background?
+                                </button>
+                                <button class="example-btn" onclick="askExample(this)">
+                                    <i class="fas fa-search"></i> Is this resume suitable for a software engineer role?
+                                </button>
+                                <button class="example-btn" onclick="askExample(this)">
+                                    <i class="fas fa-chart-line"></i> What are the main skill gaps to address?
+                                </button>
+                                <button class="example-btn" onclick="askExample(this)">
+                                    <i class="fas fa-star"></i> What are their notable achievements and projects?
+                                </button>
+                            </div>
+                            <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 8px; border-left: 4px solid #007bff;">
+                                <strong><i class="fas fa-lightbulb"></i> Pro Tip:</strong> 
+                                Visit the <a href="{{ url_for('resume_analysis', chat_id=chat_id) }}" style="color: #007bff; text-decoration: none;"><strong>ML Analysis Dashboard</strong></a> 
+                                for detailed insights with XGBoost job scoring, skill gap analysis, and personalized course recommendations!
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="chat-input-container">
+                    <form id="chat-form">
+                        <div class="input-with-icon">
+                            <textarea id="message-input" placeholder="Ask a question about this resume..." rows="1"></textarea>
+                            <button type="submit" id="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Chat Modal -->
+    <div id="renameModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Rename Chat</h2>
+            <input type="text" id="newChatName" placeholder="Enter new chat name">
+            <input type="hidden" id="chatIdToRename">
+            <button id="saveNewName" class="btn">Save</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script>
+        // Store the chat ID for use in JavaScript
+        const currentChatId = "{{ chat_id }}";
+        
+        // Initialize Firebase variables for client-side
+        document.addEventListener('DOMContentLoaded', function() {
+            // This helps with message scrolling when the page loads
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+
+        function askExample(button) {
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            
+            messageInput.value = button.textContent.trim();
+            sendBtn.disabled = false;
+            messageInput.focus();
+        }
+
+        function refreshAnalysis() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            const originalText = refreshBtn.innerHTML;
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            
+            fetch(`/refresh_analysis/${currentChatId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ML Analysis refreshed successfully! New job recommendations and skill gaps updated.');
+                } else {
+                    alert('❌ Failed to refresh analysis: ' + (data.error || 'Unknown error'));
+                }
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = originalText;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ An error occurred while refreshing the analysis.');
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = originalText;
+            });
+        }
+
+        // Rename chat functionality
+        function renameChat(chatId) {
+            document.getElementById('chatIdToRename').value = chatId;
+            document.getElementById('renameModal').style.display = 'block';
+            document.getElementById('newChatName').focus();
+        }
+
+        // Modal handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('renameModal');
+            const closeBtn = document.getElementsByClassName('close')[0];
+            const saveBtn = document.getElementById('saveNewName');
+
+            closeBtn.onclick = function() {
+                modal.style.display = 'none';
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+
+            saveBtn.onclick = function() {
+                const chatId = document.getElementById('chatIdToRename').value;
+                const newName = document.getElementById('newChatName').value.trim();
+                
+                if (newName) {
+                    fetch(`/rename_chat/${chatId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ new_name: newName })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Failed to rename chat');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while renaming the chat');
+                    });
+                }
+            }
+
+            // Enter key to save
+            document.getElementById('newChatName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    saveBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

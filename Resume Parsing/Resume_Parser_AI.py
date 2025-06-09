@@ -31,11 +31,12 @@ Extract the following details separately from the resume text:
    - Company
    - Role
    - Years
-6. Skills
-7. Certifications
-8. Projects
-
-Additionally, generate a consolidated paragraph summarizing the candidate's background, skills, and experience. This paragraph should be used for similarity measurement between the resume and job description.
+6.Total Work Experience in Years(Only number)
+7. Skills
+8. Tools
+9. Certifications
+10. Projects
+11.summary_paragraph :Additionally, generate a consolidated paragraph summarizing the candidate's background, skills, and experience. This paragraph should be used for similarity measurement between the resume and job description.
 
 Provide the output in structured JSON format.
 
@@ -46,6 +47,6 @@ Resume Text:
     response = model.generate_content(prompt)
     return response.text
 
-pdf_text = extract_text_from_pdf(r"Sample Resumes\1901841_RESUME.pdf")
+pdf_text = extract_text_from_pdf(r"E:\SEM 8\NLP\NLP-Project\Sample Resumes\candidate_018.pdf")
 parsed_resume = parse_resume(pdf_text)
 print(parsed_resume)

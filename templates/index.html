@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 AI Resume Analyzer - Upload & Analyze</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: rgba(33, 37, 41, 0.95);
+            backdrop-filter: blur(15px);
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h1 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .new-chat-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .new-chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            text-decoration: none;
+            color: white;
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            min-height: 45px;
+        }
+
+        .chat-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(3px);
+        }
+
+        .chat-link {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+            min-width: 0; /* Allow text truncation */
+        }
+
+        .chat-link i {
+            color: #667eea;
+            margin-right: 8px;
+            font-size: 0.9rem;
+        }
+
+        .chat-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .analysis-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 4px 6px;
+            border-radius: 12px;
+            font-size: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .analysis-btn:hover {
+            background: linear-gradient(135deg, #218838, #1e7e34);
+            transform: translateY(-1px);
+            text-decoration: none;
+            color: white;
+        }
+
+        .rename-btn, .delete-btn {
+            background: transparent;
+            border: none;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+        }
+
+        .rename-btn:hover {
+            background: rgba(13, 110, 253, 0.2);
+            color: #0d6efd;
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+
+        .no-chats {
+            text-align: center;
+            padding: 30px 15px;
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px 0 0 20px;
+            padding: 40px;
+            margin: 20px 20px 20px 0;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        .welcome-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome-header h1 {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .welcome-header p {
+            font-size: 1.3rem;
+            color: #6c757d;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+
+        /* PROMINENT UPLOAD SECTION */
+        .upload-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 3px dashed #667eea;
+            border-radius: 20px;
+            padding: 50px 40px;
+            text-align: center;
+            margin-bottom: 50px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #764ba2;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .upload-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .upload-subtitle {
+            font-size: 1.1rem;
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+
+        /* FILE INPUT STYLING */
+        .file-input-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-label:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-name {
+            margin-top: 15px;
+            font-size: 1rem;
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        /* UPLOAD BUTTON */
+        .upload-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            color: white;
+            padding: 18px 50px;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+            margin-top: 15px;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(40, 167, 69, 0.4);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* STATUS MESSAGES */
+        .upload-status {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 15px;
+            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+
+        .upload-status.loading {
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+            border: 2px solid rgba(13, 110, 253, 0.2);
+            display: block;
+        }
+
+        .upload-status.success {
+            background: rgba(25, 135, 84, 0.1);
+            color: #198754;
+            border: 2px solid rgba(25, 135, 84, 0.2);
+            display: block;
+        }
+
+        .upload-status.error {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border: 2px solid rgba(220, 53, 69, 0.2);
+            display: block;
+        }
+
+        /* FEATURES SECTION */
+        .features-section {
+            margin-top: 60px;
+        }
+
+        .features-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 40px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            color: #495057;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .feature-description {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .main-content {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .upload-section {
+                padding: 30px 20px;
+            }
+            
+            .welcome-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-brain"></i> Resume Analyzer</h1>
+                <a href="{{ url_for('new_chat') }}" class="new-chat-btn">
+                    <i class="fas fa-plus"></i> New Analysis
+                </a>
+            </div>
+            
+            <div class="chat-list">
+                {% for id, chat in chats.items() %}
+                <div class="chat-item">
+                    <a href="{{ url_for('chat', chat_id=id) }}" class="chat-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="chat-name">{{ chat.name }}</span>
+                    </a>
+                    <div class="chat-actions">
+                        <a href="{{ url_for('resume_analysis', chat_id=id) }}" class="analysis-btn" title="View Analysis">
+                            <i class="fas fa-chart-line"></i>
+                        </a>
+                        <button class="rename-btn" onclick="renameChat('{{ id }}')" title="Rename">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <form action="{{ url_for('delete_chat', chat_id=id) }}" method="post" style="margin: 0; display: inline;">
+                            <button type="submit" class="delete-btn" title="Delete" onclick="return confirm('Delete this analysis?')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-chats">
+                    <p><i class="fas fa-info-circle"></i><br>No analyses yet.<br>Upload a resume to start!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Welcome Header -->
+            <div class="welcome-header">
+                <h1><i class="fas fa-rocket"></i> AI Resume Analyzer</h1>
+                <p>Upload your resume and get instant AI-powered analysis with job recommendations, skill gap assessment, and personalized course suggestions.</p>
+            </div>
+
+            <!-- PROMINENT UPLOAD SECTION -->
+            <div class="upload-section">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h2 class="upload-title">Upload Your Resume</h2>
+                <p class="upload-subtitle">Drag and drop your resume or click to browse<br>
+                <small>Supports PDF, DOC, and DOCX files</small></p>
+                
+                <form id="resumeForm" enctype="multipart/form-data">
+                    <div class="file-input-container">
+                        <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx" required class="file-input">
+                        <label for="resumeFile" class="file-label">
+                            <i class="fas fa-folder-open"></i> Choose Resume File
+                        </label>
+                        <div id="file-name" class="file-name">No file chosen</div>
+                    </div>
+                    
+                    <button type="submit" class="upload-btn" id="uploadBtn">
+                        <i class="fas fa-brain"></i> Analyze with AI
+                    </button>
+                </form>
+                
+                <div id="upload-status" class="upload-status"></div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features-section">
+                <h2 class="features-title">🚀 Powerful AI Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3 class="feature-title">🎯 Smart Domain Extraction</h3>
+                        <p class="feature-description">AI extracts domain expertise like Data Science, ML, AI - not just programming languages</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3 class="feature-title">🤖 Gemini AI Analysis</h3>
+                        <p class="feature-description">Powered by Google's Gemini LLM for intelligent resume insights and career guidance</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h3 class="feature-title">🎯 XGBoost Job Matching</h3>
+                        <p class="feature-description">ML-powered job scoring using experience, role fit, skill alignment, and semantic similarity</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="feature-title">📚 Targeted Learning</h3>
+                        <p class="feature-description">Course recommendations based on actual skill gaps identified in your analysis</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="feature-title">📊 Deep Analytics</h3>
+                        <p class="feature-description">Comprehensive skill gap analysis, experience matching, and career progression insights</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3 class="feature-title">💬 Interactive Chat</h3>
+                        <p class="feature-description">Ask questions about your resume, get career advice, and explore opportunities with AI</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Modal -->
+    <div id="renameModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Rename Analysis</h2>
+            <input type="text" id="newChatName" placeholder="Enter new name" style="width: 100%; padding: 10px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <input type="hidden" id="chatIdToRename">
+            <button id="saveNewName" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Save</button>
+        </div>
+    </div>
+
+    <script>
+        // File input handling with enhanced feedback
+        document.getElementById('resumeFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : 'No file chosen';
+            const fileNameElement = document.getElementById('file-name');
+            
+            if (e.target.files[0]) {
+                fileNameElement.textContent = `✅ ${fileName}`;
+                fileNameElement.style.color = '#28a745';
+                
+                // Auto-submit after file selection (optional)
+                // document.getElementById('resumeForm').dispatchEvent(new Event('submit'));
+            } else {
+                fileNameElement.textContent = 'No file chosen';
+                fileNameElement.style.color = '#6c757d';
+            }
+        });
+
+        // Enhanced form submission
+        document.getElementById('resumeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('resumeFile');
+            if (!fileInput.files[0]) {
+                alert('Please select a resume file first!');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadStatus = document.getElementById('upload-status');
+            
+            // Show loading state
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing Resume...';
+            uploadStatus.className = 'upload-status loading';
+            uploadStatus.textContent = '🔄 Uploading and analyzing your resume with ML pipeline. This may take a few moments...';
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    uploadStatus.className = 'upload-status success';
+                    uploadStatus.textContent = '✅ Resume analyzed successfully! ML job matching completed. Redirecting...';
+                    
+                    // Redirect to chat page
+                    setTimeout(() => {
+                        window.location.href = `/chat/${data.chat_id}`;
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Upload failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                uploadStatus.className = 'upload-status error';
+                uploadStatus.textContent = `❌ Error: ${error.message}`;
+                
+                // Reset button
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-brain"></i> Analyze with AI';
+            });
+        });
+
+        // Drag and drop functionality
+        const uploadSection = document.querySelector('.upload-section');
+        
+        uploadSection.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#28a745';
+            this.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
+        });
+        
+        uploadSection.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#667eea';
+            this.style.backgroundColor = '';
+        });
+        
+        uploadSection.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#667eea';
+            this.style.backgroundColor = '';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('resumeFile').files = files;
+                document.getElementById('resumeFile').dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Modal functionality
+        function renameChat(chatId) {
+            document.getElementById('chatIdToRename').value = chatId;
+            document.getElementById('renameModal').style.display = 'block';
+            document.getElementById('newChatName').focus();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('renameModal');
+            const closeBtn = document.querySelector('.close');
+            const saveBtn = document.getElementById('saveNewName');
+
+            closeBtn.onclick = () => modal.style.display = 'none';
+            window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; }
+
+            saveBtn.onclick = function() {
+                const chatId = document.getElementById('chatIdToRename').value;
+                const newName = document.getElementById('newChatName').value.trim();
+                
+                if (newName) {
+                    fetch(`/rename_chat/${chatId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ new_name: newName })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Failed to rename');
+                        }
+                    });
+                }
+            }
+
+            // Enter key to save
+            document.getElementById('newChatName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') saveBtn.click();
+            });
+        });
+    </script>
+</body>
+</html>
